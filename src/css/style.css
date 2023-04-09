@@ -1,5 +1,5 @@
 :root {
-  /*Colours*/
+  /*Colors*/
   --clr-accent-300: hsl(180, 100%, 60%);
   --clr-accent-400: hsl(180, 60%, 50%);
 
@@ -11,6 +11,9 @@
   --clr-neutral-600: hsl(0, 0%, 16%);
   --clr-neutral-700: hsl(0, 0%, 11%);
   --clr-neutral-900: hsl(0, 0%, 0%);
+
+  --clr-task-red: red;
+  --clr-task-orange: orange;
 
   /*Font Family*/
   --ff-primary: Roboto, Arial, sans-serif;
@@ -70,6 +73,7 @@ input {
 /***---MAIN---***/
 
 main {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 15rem) 3fr;
   /* grid-template-areas: 'sidebar todo-container'; */
@@ -80,7 +84,8 @@ main {
 
 /***---SIDEBAR---***/
 
-.sidebar {
+.active-todo-sidebar,
+.list-sidebar {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,9 +93,13 @@ main {
   background-color: var(--clr-neutral-500);
 }
 
+.preset-lists-container,
 .list-container {
   display: flex;
   flex-direction: column;
+}
+
+.list-container {
   flex-grow: 1;
 }
 
@@ -105,16 +114,223 @@ main {
 }
 
 .todo-container {
+  isolation: isolate;
   flex-grow: 1;
   gap: var(--spc-300);
 }
 
-.todo-card {
+.complete-container,
+.incomplete-container {
   display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.todo-card:not([data-color='neutral']):before {
+  content: '';
+  z-index: -1;
+  position: absolute;
+  left: 0;
+  width: 20%;
+  height: 100%;
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+.todo-card {
+  z-index: 1;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding-inline: var(--spc-200);
 
   min-width: 20rem;
-  background-color: rgba(0, 0, 0, 0.33);
+  background-color: var(--clr-neutral-500);
   border-radius: var(--border-radius);
+}
+
+.todo-card:hover {
+  filter: brightness(0.8);
+}
+
+.complete-task {
+  position: relative;
+  color: white;
+}
+
+.complete-task > i {
+  position: absolute;
+  left: 0;
+  scale: 0.75;
+  color: black;
+}
+
+/*Todo Input*/
+
+.todo-input {
+  display: flex;
+  gap: var(--spc-100);
+}
+
+.date-input-wrapper {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.calendar-icon-wrapper {
+  isolation: isolate;
+  position: relative;
+  height: 2rem;
+}
+
+.calendar-icon-wrapper > img {
+  display: none;
+  height: 100%;
+}
+
+.calendar-icon-wrapper > img.active {
+  display: block;
+}
+
+.calendar-icon-wrapper > .calendar-month,
+.calendar-icon-wrapper > .calendar-day {
+  z-index: 1;
+  position: absolute;
+  display: none;
+  font-weight: bold;
+  top: 50%;
+  left: 50%;
+}
+
+.calendar-icon-wrapper:has(.calendar-no-grid.active) > .cal-date {
+  display: block;
+}
+
+.calendar-icon-wrapper > .calendar-month {
+  color: white;
+  font-size: var(--fs-200);
+  transform: translate(-50%, -102%);
+}
+
+.calendar-icon-wrapper > .calendar-day {
+  transform: translate(-50%, -33%);
+}
+
+.hidden-date-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.color-selector {
+  position: relative;
+  height: 100%;
+  width: 2rem;
+
+  border: 2px solid black;
+  border-radius: var(--border-radius);
+}
+
+.color-selector.no-selection {
+  background-image: linear-gradient(
+    to right,
+    #f1a3bb,
+    #f4c4a9,
+    #f2ee8f,
+    #96d470,
+    #959fef,
+    #ac68d7
+  );
+}
+
+.color-selector:focus-within .color-selector-menu {
+  display: grid;
+}
+
+.color-selector-menu {
+  position: absolute;
+  display: none;
+  gap: var(--spc-200);
+  left: 50%;
+  transform: translate(calc(-50%), -110%);
+
+  background-color: #ffffff94;
+  border-radius: var(--border-radius);
+  padding: var(--spc-200);
+}
+
+.color-selector-menu > input {
+  width: 100%;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  width: calc((1.5rem + var(--spc-100)) * 3 - var(--spc-100));
+
+  gap: var(--spc-100);
+}
+
+.preset {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  border-radius: var(--border-radius);
+}
+
+/***---TODO DETAILS SIDEBAR---***/
+
+.column-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.active-todo-sidebar {
+  position: absolute;
+  width: 15rem;
+  height: 100%;
+  right: 0;
+
+  display: none;
+}
+
+.active-todo-sidebar.active {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spc-200);
+}
+
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.33);
+
+  display: none;
+}
+
+.overlay.active {
+  display: block;
+}
+
+#active-steps-container {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.step-card {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--clr-neutral-300);
+  border-radius: var(--border-radius);
+  padding-inline: var(--spc-200);
 }
 
 /***---FOOTER---***/
