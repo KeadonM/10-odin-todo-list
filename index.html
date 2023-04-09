@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Todo</title>
+    <script
+      defer
+      src="https://kit.fontawesome.com/7881ce7c0a.js"
+      crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+      rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/main-41bb8343.js"></script>
+    <link rel="stylesheet" href="/assets/index-98e34f49.css" />
+  </head>
+  <body>
+    <header></header>
+    <main>
+      <aside class="list-sidebar">
+        <div class="preset-lists-container">
+          <button class="preset-list">Due Today</button>
+          <button class="preset-list">Important</button>
+        </div>
+        <h2 class="completed-tasks-title">My Lists</h2>
+        <div class="list-container"></div>
+        <div class="list-input">
+          <input
+            type="text"
+            name="list"
+            id="new-list-input"
+            placeholder="Enter new list" />
+        </div>
+      </aside>
+      <div class="active-list">
+        <h1 class="active-list-title"></h1>
+        <div class="todo-container">
+          <div class="incomplete-container"></div>
+          <h2 class="completed-tasks-title">Completed</h2>
+          <div class="complete-container"></div>
+        </div>
+        <form class="todo-input">
+          <input
+            type="text"
+            name="todo"
+            id="new-todo-input"
+            placeholder="Enter new todo" />
+          <div class="date-input-wrapper">
+            <div class="calendar-icon">
+              <img src="/assets/calender-4c39772d.svg" alt="" />
+              <img src="calender-no-grid.svg" alt="" />
+            </div>
+            <input type="date" class="hidden-date-input" />
+          </div>
+          <div tabindex="0" id="color-selector" class="no-selection">
+            <div class="color-selector-menu">
+              <input type="color" id="color-input" />
+              <div class="presets">
+                <div class="preset" data-color="#F1A3BB"></div>
+                <div class="preset" data-color="#F4C4A9"></div>
+                <div class="preset" data-color="#F2EE8F"></div>
+                <div class="preset" data-color="#96D470"></div>
+                <div class="preset" data-color="#959FEF"></div>
+                <div class="preset" data-color="#AC68D7"></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="overlay"></div>
+      <aside class="active-todo-sidebar">
+        <div class="task-container">
+          <div class="column-wrapper">
+            <p id="task-title">Title</p>
+            <i class="fa-regular fa-star"></i>
+          </div>
+          <div class="steps-wrapper">
+            <div id="active-steps-container"></div>
+            <input
+              type="text"
+              name="list"
+              id="add-step-input"
+              placeholder="Add a step" />
+          </div>
+        </div>
+        <div class="column-wrapper">
+          <div class="date-input-wrapper">
+            <p id="task-due-date">Due date</p>
+            <div class="calendar-icon">
+              <img src="/assets/calender-4c39772d.svg" alt="" />
+            </div>
+            <input
+              type="date"
+              id="task-date-select"
+              class="hidden-date-input" />
+          </div>
+          <div tabindex="0" id="color-selector" class="no-selection">
+            <div class="color-selector-menu">
+              <input type="color" id="color-input" />
+              <div class="presets">
+                <div class="preset" data-color="#F1A3BB"></div>
+                <div class="preset" data-color="#F4C4A9"></div>
+                <div class="preset" data-color="#F2EE8F"></div>
+                <div class="preset" data-color="#96D470"></div>
+                <div class="preset" data-color="#959FEF"></div>
+                <div class="preset" data-color="#AC68D7"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <textarea name="notes" id="task-note" placeholder="Add note"></textarea>
+        <i id="task-delete" class="fa-solid fa-trash"></i>
+      </aside>
+    </main>
+    <footer></footer>
+  </body>
+</html>
