@@ -1,7 +1,14 @@
 import './css/reset.css';
 import './css/style.css';
 
-import { getMonth, getDate, parseISO } from 'date-fns';
+import {
+  getMonth,
+  getDate,
+  parseISO,
+  differenceInDays,
+  differenceInYears,
+  format,
+} from 'date-fns';
 
 const ListBuilder = (listName) => {
   const list = Object.create({
@@ -40,10 +47,10 @@ const TodoBuilder = (
 
   todo.title = title;
   todo.color = color === undefined ? 'neutral' : color;
-  todo.dueDate = dueDate;
+  todo.dueDate = dueDate === undefined ? '' : dueDate;
   todo.priority = priority;
   todo.complete = complete;
-  todo.note = note;
+  todo.note = note === undefined ? '' : note;
   todo.steps = steps === undefined ? ListBuilder('steps') : steps;
 
   return todo;
@@ -132,16 +139,23 @@ const masterList = (() => {
 })();
 
 const DomController = (() => {
-  addList('default');
-
+  const hamburgerBtn = document.querySelector('.hamburger-btn');
   const overlay = document.querySelector('.overlay');
   const activeTodoSidebar = document.querySelector('.active-todo-sidebar');
+  const listSideBar = document.querySelector('.list-sidebar');
 
   const newListInput = document.querySelector('#new-list-input');
   const addTodoInput = document.querySelector('#new-todo-input');
+  const categoryContainer = document.querySelectorAll('.category-container');
+
+  hamburgerBtn.addEventListener('click', () => {
+    listSideBar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  });
 
   overlay.addEventListener('click', () => {
     closeSidebar();
+    closeListSidebar();
   });
 
   newListInput.addEventListener('keydown', (e) => {
@@ -171,15 +185,24 @@ const DomController = (() => {
     calenderInput.value = '';
 
     const colorSelector =
-      addTodoInput.parentElement.querySelector('.color-selector');
+      addTodoInput.parentElement.parentElement.querySelector('.color-selector');
     colorSelector.classList.add('no-selection');
 
-    const colorInput = addTodoInput.parentElement.querySelector('.color-input');
+    const colorInput =
+      addTodoInput.parentElement.parentElement.querySelector('.color-input');
     const color = colorInput.value === '#000000' ? 'neutral' : colorInput.value;
     colorInput.value = '';
 
     addTodo(title, color, dueDate);
     saveMasterListToLocalStorage();
+  });
+
+  categoryContainer.forEach((category) => {
+    const wrapper = category.querySelector('.title-wrapper');
+
+    wrapper.addEventListener('click', () => {
+      category.classList.toggle('hidden');
+    });
   });
 
   (function setUpDateSelector() {
@@ -326,7 +349,7 @@ const DomController = (() => {
 
   function swapActiveList(list) {
     masterList.setActiveList(list);
-
+    saveMasterListToLocalStorage();
     displayTodos();
   }
 
@@ -341,23 +364,43 @@ const DomController = (() => {
 
     function buildListCard(list) {
       const card = document.createElement('div');
+      card.classList.add('list-card');
 
       const swapBtn = document.createElement('button');
       card.appendChild(swapBtn);
-      swapBtn.classList.add('list-card');
+      swapBtn.classList.add('swap-btn');
       swapBtn.innerHTML = list.title;
 
       swapBtn.addEventListener('click', () => {
         swapActiveList(list);
       });
 
+      const totalTasks = document.createElement('p');
+      card.appendChild(totalTasks);
+      totalTasks.classList.add('total-tasks');
+      totalTasks.innerHTML = list.items.length;
+
       const deleteBtn = document.createElement('button');
       card.appendChild(deleteBtn);
+      deleteBtn.classList.add('delete-btn');
       deleteBtn.innerHTML =
         ' <i id="task-delete" class="fa-solid fa-trash"></i>';
 
       deleteBtn.addEventListener('click', () => {
         masterList.deleteItem(list);
+        listContainer.removeChild(card);
+
+        if (masterList.items.length === 0) {
+          masterList.addItem(ListBuilder('My Tasks'));
+          masterList.setActiveList(masterList.items[0]);
+          displayTodos();
+          displayLists();
+        } else if (masterList.getActiveList() === list) {
+          const nextList = masterList.items[masterList.items.length - 1];
+          masterList.setActiveList(nextList);
+          displayTodos();
+        }
+
         saveMasterListToLocalStorage();
       });
 
@@ -408,16 +451,57 @@ const DomController = (() => {
         saveMasterListToLocalStorage();
       });
 
-      const title = document.createElement('h2');
-      card.appendChild(title);
+      const taskWrapper = document.createElement('div');
+      card.appendChild(taskWrapper);
+      taskWrapper.classList.add('todo-card-task-wrapper');
+
+      const title = document.createElement('p');
+      taskWrapper.appendChild(title);
+      title.classList.add('task-title');
       title.innerHTML = todo.title;
 
+      const detailsWrapper = document.createElement('div');
+      taskWrapper.appendChild(detailsWrapper);
+      detailsWrapper.classList.add('task-details-wrapper');
+
       const dueDate = document.createElement('p');
-      card.appendChild(dueDate);
-      dueDate.innerHTML = todo.dueDate;
+      detailsWrapper.appendChild(dueDate);
+      dueDate.classList.add('task-due-date');
+      const parsedDate = parseISO(todo.dueDate);
+      const daysUntilDue = differenceInDays(parsedDate, new Date());
+      const yearsUntilDue = differenceInYears(parsedDate, new Date());
+
+      if (daysUntilDue < 0) {
+        dueDate.innerHTML = `Due ${daysUntilDue * -1} days ago`;
+        dueDate.classList.add('past-due');
+      } else if (daysUntilDue === 0) dueDate.innerHTML = `Due today`;
+      else if (daysUntilDue === 1) dueDate.innerHTML = `Due tomorrow`;
+      else if (daysUntilDue < 7)
+        dueDate.innerHTML = `Due in ${daysUntilDue} days`;
+      else if (yearsUntilDue < 1)
+        dueDate.innerHTML = `Due ${format(parsedDate, 'EEE, MMM do', {
+          awareOfUnicodeTokens: true,
+        }).replace('do', formatOrdinalDay(parsedDate))}`;
+      else if (yearsUntilDue >= 1)
+        dueDate.innerHTML = `Due ${format(parsedDate, 'EEE, MMM do, yyyy', {
+          awareOfUnicodeTokens: true,
+        }).replace('do', formatOrdinalDay(parsedDate))}`;
+
+      const subTasks = document.createElement('p');
+      detailsWrapper.appendChild(subTasks);
+      subTasks.classList.add('sub-tasks');
+      subTasks.innerHTML =
+        todo.steps.items.length === 0 ? '' : todo.steps.items.length;
+
+      const note = document.createElement('p');
+      detailsWrapper.appendChild(note);
+      note.classList.add('task-note');
+      note.innerHTML =
+        todo.note === '' ? '' : '<i class="fa-regular fa-pen-to-square"></i>';
 
       const priority = document.createElement('div');
       card.appendChild(priority);
+      priority.classList.add('priority');
       onPriorityToggled(priority, todo);
 
       priority.addEventListener('click', (e) => {
@@ -496,6 +580,7 @@ const DomController = (() => {
 
         const checkBox = document.createElement('div');
         stepCard.appendChild(checkBox);
+        checkBox.classList.add('check-box');
 
         onCompletedToggled(checkBox, step);
         checkBox.addEventListener('click', (e) => {
@@ -509,8 +594,9 @@ const DomController = (() => {
         stepCard.appendChild(stepTitle);
         stepTitle.textContent = step.title;
 
-        const deleteBtn = document.createElement('p');
+        const deleteBtn = document.createElement('div');
         stepCard.appendChild(deleteBtn);
+        deleteBtn.classList.add('step-delete-btn');
         deleteBtn.innerHTML = '<i class="step-delete fa-solid fa-trash"></i>';
 
         deleteBtn.onclick = () => {
@@ -533,7 +619,7 @@ const DomController = (() => {
           '<i class="incomplete-task fa-regular fa-circle"></i>';
       else
         btnContainer.innerHTML =
-          '<i class="complete-task fa-solid fa-circle"><i class="fa-solid fa-check"></i></i>';
+          ' <i class="complete-task fa-solid fa-circle-check"></i>';
     }
 
     function moveTodoCard(card, completed) {
@@ -567,4 +653,17 @@ const DomController = (() => {
     overlay.classList.remove('active');
     activeTodoSidebar.classList.remove('active');
   }
+
+  function closeListSidebar() {
+    overlay.classList.remove('active');
+    listSideBar.classList.remove('active');
+  }
 })();
+
+function formatOrdinalDay(date) {
+  const day = date.getDate();
+  const suffix = ['th', 'st', 'nd', 'rd'][
+    day % 10 > 3 ? 0 : (((day % 100) - (day % 10) !== 10) * day) % 10
+  ];
+  return day + suffix;
+}
