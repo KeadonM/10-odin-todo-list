@@ -5,6 +5,10 @@
   --clr-accent-500: hsl(191, 100%, 33%);
   --clr-accent-700: hsl(191, 70%, 40%);
 
+  --clr-panel-400: hsl(199, 13%, 33%);
+  --clr-panel-500: hsl(199, 13%, 22%);
+  --clr-panel-600: hsl(199, 13%, 18%);
+
   --clr-neutral-100: hsl(0, 0%, 99%);
   --clr-neutral-200: hsl(0, 0%, 80%);
   --clr-neutral-300: hsl(0, 0%, 66%);
@@ -67,15 +71,15 @@ body {
 }
 
 .btn-hover-transition {
-  filter: brightness(0.8);
+  filter: brightness(0.9);
 
   transition: 0.12s;
 }
 
 .btn-hover-transition:hover,
 .btn-hover-transition:focus-within {
-  filter: brightness(1);
-  scale: 1.05;
+  filter: brightness(1.05);
+  scale: 1.03;
 
   transition: 0.12s;
 }
@@ -83,11 +87,11 @@ body {
 /***---HEADER---***/
 
 header {
-  background-color: var(--clr-neutral-600);
+  background-color: var(--clr-panel-600);
 }
 
 .header-wrapper {
-  height: 8vh;
+  height: 6vh;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -97,17 +101,14 @@ header {
 .logo-container {
   display: flex;
   align-content: center;
-  height: 8vh;
-  padding: var(--spc-200);
-  margin-left: var(--spc-100);
+  height: 5vh;
 }
 
 .hamburger-btn {
   display: none;
   color: var(--clr-accent-300);
-  font-size: 1rem;
+  font-size: 2.5rem;
   transform-origin: left;
-  scale: 2.5;
 }
 
 .hamburger-btn > i {
@@ -135,7 +136,7 @@ main {
   display: grid;
   grid-template-columns: minmax(0, clamp(15rem, 20vw, 25rem)) 3fr;
 
-  background-color: var(--clr-neutral-525);
+  background-color: var(--clr-panel-400);
   height: 100%;
 }
 
@@ -152,7 +153,7 @@ textarea {
   padding: 0.33rem;
   padding-left: var(--spc-200);
   border-radius: var(--border-radius);
-  background-color: var(--clr-neutral-700);
+  background-color: rgba(0, 0, 0, 0.35);
   color: var(--clr-neutral-100);
 }
 
@@ -164,7 +165,7 @@ textarea {
   align-items: center;
   padding-block: var(--spc-400);
   padding-inline: var(--spc-200);
-  background-color: var(--clr-neutral-550);
+  background-color: var(--clr-panel-500);
 }
 
 .sidebar input {
@@ -377,7 +378,6 @@ textarea {
 }
 
 .todo-input > * {
-  outline: 2px solid var(--clr-neutral-700);
   border-radius: var(--border-radius);
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.33);
 }
@@ -455,6 +455,14 @@ textarea {
   height: 100%;
   top: 0;
   left: 0;
+}
+
+.hidden-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .color-selector {
@@ -561,6 +569,7 @@ textarea {
 .task-container {
   display: flex;
   flex-direction: column;
+  width: 100%;
   gap: var(--spc-200);
   background-color: rgba(0, 0, 0, 0.3);
   padding: var(--spc-200);
@@ -587,11 +596,22 @@ textarea {
 .settings-wrapper {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   min-height: 3.5rem;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.3);
   padding: var(--spc-200);
+  padding-left: var(--spc-400);
   border-radius: var(--border-radius);
+}
+
+.settings-wrapper .date-input-wrapper,
+.settings-wrapper .color-selector {
+  margin-left: auto;
+  border-radius: var(--border-radius);
+
+  width: 2.5rem;
+  aspect-ratio: 1 / 1;
 }
 
 #task-note {
@@ -613,7 +633,7 @@ textarea {
 
 .active-todo-sidebar {
   position: absolute;
-  width: 15rem;
+  width: clamp(15rem, 5rem + 15vw, 25rem);
   height: 100%;
   right: 0;
 
@@ -630,7 +650,7 @@ textarea {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.33);
+  background-color: rgba(0, 0, 0, 0.15);
 
   display: none;
 }
@@ -646,6 +666,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 footer {
@@ -656,7 +677,7 @@ footer {
   margin-top: auto;
   padding: var(--spacing-xs);
   padding-top: var(--spacing-xl);
-  background-color: var(--clr-neutral-600);
+  background-color: var(--clr-panel-600);
 }
 
 #copyright {
@@ -717,7 +738,7 @@ footer {
   }
 
   .logo-container {
-    display: none;
+    height: 4vh;
   }
 
   .hamburger-btn {

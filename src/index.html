@@ -18,12 +18,12 @@
   <body>
     <header>
       <div class="header-wrapper">
-        <div class="logo-container">
-          <img class="logo" src="todo-logo.png" alt="" />
-        </div>
-
         <div class="hamburger-btn">
           <i class="fa-solid fa-bars"></i>
+        </div>
+
+        <div class="logo-container">
+          <img class="logo" src="tasker-logo.png" alt="" />
         </div>
 
         <div class="profile">
@@ -127,9 +127,6 @@
       <aside class="sidebar active-todo-sidebar">
         <div class="task-container">
           <div class="task-wrapper">
-            <div class="check-box">
-              <i class="incomplete-task fa-regular fa-circle"></i>
-            </div>
             <p id="task-title">Title</p>
             <i class="priority fa-regular fa-star"></i>
           </div>
@@ -145,8 +142,8 @@
         </div>
 
         <div class="settings-wrapper">
-          <div class="date-input-wrapper">
-            <p id="task-due-date">Due date</p>
+          <p id="task-due-date">Due date</p>
+          <div class="date-input-wrapper btn-hover-transition">
             <div class="calendar-icon-wrapper">
               <img class="calendar active" src="calendar.svg" alt="" />
               <img class="calendar-no-grid" src="calendar-no-grid.svg" alt="" />
@@ -162,9 +159,18 @@
         </div>
 
         <div class="settings-wrapper">
-          <div tabindex="0" class="color-selector no-selection">
+          <p id="current-label-color">Label color</p>
+          <div
+            tabindex="0"
+            class="color-selector no-selection btn-hover-transition">
             <div class="color-selector-menu">
-              <input type="color" class="color-input" />
+              <div class="color-input-wrapper">
+                <input type="color" class="color-input" />
+                <button type="button" class="cancel-color">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
               <div class="presets">
                 <div class="preset" data-color="#F1A3BB"></div>
                 <div class="preset" data-color="#F4C4A9"></div>

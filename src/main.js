@@ -284,12 +284,11 @@ const DomController = (() => {
 
     colorSelector.forEach((selector) => {
       const colorInput = selector.querySelector('.color-input');
+      const changeEvent = new Event('change');
 
       colorInput.addEventListener('change', () => {
-        console.log('change');
-        console.log(colorInput.value);
-        colorSelector.style.backgroundColor = colorInput.value;
-        colorSelector.classList.remove('no-selection');
+        selector.style.backgroundColor = colorInput.value;
+        selector.classList.remove('no-selection');
       });
 
       selector.querySelectorAll('.preset').forEach((preset) => {
@@ -300,6 +299,8 @@ const DomController = (() => {
           selector.style.backgroundColor = preset.dataset.color;
           selector.classList.remove('no-selection');
           colorInput.value = e.target.dataset.color;
+
+          colorInput.dispatchEvent(changeEvent);
         });
       });
     });
@@ -419,37 +420,32 @@ const DomController = (() => {
     completeContainer.innerHTML = '';
 
     masterList.getActiveList().items.forEach((todo) => {
-      const card = buildTodoCard(todo);
+      (function setUpCard(replaceCard) {
+        const card = buildTodoCard(todo);
 
-      card.addEventListener('click', () => {
-        displaySidebar(todo, card);
-      });
+        card.addEventListener('click', () => {
+          displaySidebar(todo, card);
+        });
 
-      if (todo.complete) completeContainer.appendChild(card);
-      else incompleteContainer.appendChild(card);
+        overlay.onclick = () => {
+          setUpCard(card);
+        };
+
+        if (replaceCard === undefined) {
+          if (todo.complete) completeContainer.appendChild(card);
+          else incompleteContainer.appendChild(card);
+        } else {
+          if (todo.complete) completeContainer.replaceChild(card, replaceCard);
+          else incompleteContainer.replaceChild(card, replaceCard);
+        }
+      })();
     });
 
     function buildTodoCard(todo) {
       const card = document.createElement('div');
       card.classList.add('todo-card');
-      card.setAttribute('data-color', todo.color);
 
-      const taskColor = document.createElement('style');
-      taskColor.innerHTML = `[data-color="${todo.color}"]::before { background-image: linear-gradient(to right,${todo.color},rgba(0, 0, 0, 0)); }`;
-      card.appendChild(taskColor);
-
-      const checkBox = document.createElement('div');
-      card.appendChild(checkBox);
-      checkBox.classList.add('check-box');
-
-      onCompletedToggled(checkBox, todo);
-      checkBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        todo.toggleComplete();
-        onCompletedToggled(checkBox, todo);
-        moveTodoCard(card, todo.complete);
-        saveMasterListToLocalStorage();
-      });
+      card.appendChild(buildCheckBox(todo, card));
 
       const taskWrapper = document.createElement('div');
       card.appendChild(taskWrapper);
@@ -499,23 +495,25 @@ const DomController = (() => {
       note.innerHTML =
         todo.note === '' ? '' : '<i class="fa-regular fa-pen-to-square"></i>';
 
-      const priority = document.createElement('div');
-      card.appendChild(priority);
-      priority.classList.add('priority');
-      onPriorityToggled(priority, todo);
-
-      priority.addEventListener('click', (e) => {
-        e.stopPropagation();
-        todo.togglePriority();
-        onPriorityToggled(priority, todo);
-        saveMasterListToLocalStorage();
-      });
+      card.appendChild(buildPriorityBtn(todo));
 
       return card;
     }
 
     function displaySidebar(todo, card) {
-      activeTodoSidebar.querySelector('#task-title').textContent = todo.title;
+      const taskWrapper = activeTodoSidebar.querySelector('.task-wrapper');
+      taskWrapper.innerHTML = '';
+
+      const checkBox = buildCheckBox(todo, card);
+      taskWrapper.appendChild(checkBox);
+
+      const title = document.createElement('p');
+      taskWrapper.appendChild(title);
+      title.id = 'task-title';
+      title.textContent = todo.title;
+
+      const priorityBtn = buildPriorityBtn(todo);
+      taskWrapper.appendChild(priorityBtn);
 
       displaySteps(todo);
 
@@ -528,7 +526,8 @@ const DomController = (() => {
       });
 
       const dueDateLabel = activeTodoSidebar.querySelector('#task-due-date');
-      dueDateLabel.textContent = todo.dueDate;
+      if (todo.dueDate === '') dueDateLabel.textContent = 'No due date';
+      else dueDateLabel.textContent = todo.dueDate;
 
       const dateSelect = activeTodoSidebar.querySelector('#task-date-select');
       dateSelect.value = '';
@@ -536,6 +535,28 @@ const DomController = (() => {
       dateSelect.onchange = () => {
         todo.dueDate = dateSelect.value;
         dueDateLabel.textContent = todo.dueDate;
+        saveMasterListToLocalStorage();
+      };
+
+      const colorSelector = activeTodoSidebar.querySelector('.color-selector');
+      const colorLabel = activeTodoSidebar.querySelector(
+        '#current-label-color'
+      );
+      if (todo.color === 'neutral') {
+        colorLabel.textContent = 'Select a color';
+        colorSelector.classList.add('no-selection');
+      } else {
+        colorLabel.textContent = `${todo.color.toUpperCase()}`;
+        colorSelector.style.backgroundColor = todo.color;
+        colorSelector.classList.remove('no-selection');
+      }
+
+      const colorInput = activeTodoSidebar.querySelector('.color-input');
+      colorInput.onchange = () => {
+        todo.color = colorInput.value;
+        colorLabel.textContent = `${todo.color.toUpperCase()}`;
+        const oldCheckBox = activeTodoSidebar.querySelector('.check-box');
+        taskWrapper.replaceChild(buildCheckBox(todo, card), oldCheckBox);
         saveMasterListToLocalStorage();
       };
 
@@ -557,6 +578,42 @@ const DomController = (() => {
 
       activeTodoSidebar.classList.add('active');
       overlay.classList.add('active');
+    }
+
+    function buildCheckBox(todo, card) {
+      const checkBox = document.createElement('div');
+      checkBox.setAttribute('data-color', todo.color);
+      checkBox.classList.add('check-box');
+
+      const taskColor = document.createElement('style');
+      card.appendChild(taskColor);
+      taskColor.innerHTML = `.check-box[data-color="${todo.color}"] i {color: ${todo.color}}`;
+
+      onCompletedToggled(checkBox, todo);
+      checkBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        todo.toggleComplete();
+        onCompletedToggled(checkBox, todo);
+        moveTodoCard(card, todo.complete);
+        saveMasterListToLocalStorage();
+      });
+
+      return checkBox;
+    }
+
+    function buildPriorityBtn(todo) {
+      const priority = document.createElement('div');
+      priority.classList.add('priority');
+      onPriorityToggled(priority, todo);
+
+      priority.addEventListener('click', (e) => {
+        e.stopPropagation();
+        todo.togglePriority();
+        onPriorityToggled(priority, todo);
+        saveMasterListToLocalStorage();
+      });
+
+      return priority;
     }
 
     function addStep(todo, step) {
