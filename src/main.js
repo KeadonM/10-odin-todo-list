@@ -5,7 +5,7 @@ import {
   getMonth,
   getDate,
   parseISO,
-  differenceInDays,
+  differenceInCalendarDays,
   differenceInYears,
   format,
 } from 'date-fns';
@@ -28,6 +28,7 @@ const ListBuilder = (listName) => {
 };
 
 const TodoBuilder = (
+  childOf,
   title,
   color,
   dueDate,
@@ -43,8 +44,13 @@ const TodoBuilder = (
     toggleComplete: function () {
       this.complete = !this.complete;
     },
+    setColor: function (newColor) {
+      if (newColor === '#000000') this.color = 'neutral';
+      else this.color = newColor;
+    },
   });
 
+  todo.childOf = childOf;
   todo.title = title;
   todo.color = color === undefined ? 'neutral' : color;
   todo.dueDate = dueDate === undefined ? '' : dueDate;
@@ -114,6 +120,7 @@ const masterList = (() => {
           return stepBuilder(stepData.title, stepData.complete);
         });
         return TodoBuilder(
+          newList,
           todoData.title,
           todoData.color,
           todoData.dueDate,
@@ -183,11 +190,9 @@ const DomController = (() => {
 
     const dueDate = calenderInput.value;
     calenderInput.value = '';
-
     const colorSelector =
       addTodoInput.parentElement.parentElement.querySelector('.color-selector');
     colorSelector.classList.add('no-selection');
-
     const colorInput =
       addTodoInput.parentElement.parentElement.querySelector('.color-input');
     const color = colorInput.value === '#000000' ? 'neutral' : colorInput.value;
@@ -284,11 +289,19 @@ const DomController = (() => {
 
     colorSelector.forEach((selector) => {
       const colorInput = selector.querySelector('.color-input');
+      const cancelColor = selector.querySelector('.cancel-color');
       const changeEvent = new Event('change');
 
       colorInput.addEventListener('change', () => {
+        if (colorInput.value === '#000000') return;
         selector.style.backgroundColor = colorInput.value;
         selector.classList.remove('no-selection');
+      });
+
+      cancelColor.addEventListener('click', () => {
+        colorInput.value = '#000000';
+        selector.classList.add('no-selection');
+        colorInput.dispatchEvent(changeEvent);
       });
 
       selector.querySelectorAll('.preset').forEach((preset) => {
@@ -304,6 +317,113 @@ const DomController = (() => {
         });
       });
     });
+  })();
+
+  (function setUpSearchbar() {
+    const searchBar = document.querySelector('.search-bar');
+
+    searchBar.addEventListener('keyup', () => {
+      const matches = findAllMatches(searchBar.value.toLowerCase());
+
+      if (searchBar.value === '') displayTodos();
+      else displayTodos(matches);
+    });
+
+    function findAllMatches(query) {
+      const matches = ListBuilder('Search Results');
+
+      masterList.items.forEach((list) => {
+        list.items.forEach((task) => {
+          const title = task.title.toLowerCase();
+          if (title.includes(query)) {
+            matches.addItem(task);
+          }
+        });
+      });
+
+      return matches;
+    }
+  })();
+
+  (function setUpImportantList() {
+    const priorityBtn = document.querySelector('.priority-btn');
+
+    priorityBtn.addEventListener('click', () => {
+      const matches = findAllPriorityTasks();
+
+      displayTodos(matches);
+    });
+
+    function findAllPriorityTasks() {
+      const matches = ListBuilder('Priorities');
+
+      masterList.items.forEach((list) => {
+        list.items.forEach((task) => {
+          if (task.priority) {
+            matches.addItem(task);
+          }
+        });
+      });
+
+      return matches;
+    }
+  })();
+
+  (function setUpDueDatePresets() {
+    const plannedBtn = document.querySelector('.planned-btn');
+    const pastDueBtn = document.querySelector('.past-due-btn');
+    const dueTodayBtn = document.querySelector('.due-today-btn');
+    const dueTomorrowBtn = document.querySelector('.due-tomorrow-btn');
+
+    plannedBtn.addEventListener('click', () => {
+      const matches = findAllDueToday('planned', 'Planned');
+
+      displayTodos(matches);
+    });
+
+    pastDueBtn.addEventListener('click', () => {
+      const matches = findAllDueToday('pastdue', 'Past Due');
+
+      displayTodos(matches);
+    });
+
+    dueTodayBtn.addEventListener('click', () => {
+      const matches = findAllDueToday(0, 'Due Today');
+
+      displayTodos(matches);
+    });
+
+    dueTomorrowBtn.addEventListener('click', () => {
+      const matches = findAllDueToday(1, 'Due Tomorrow');
+
+      displayTodos(matches);
+    });
+
+    function findAllDueToday(query, queryTitle) {
+      const matches = ListBuilder(queryTitle);
+      const currentDate = new Date();
+
+      masterList.items.forEach((list) => {
+        list.items.forEach((task) => {
+          const parsedDate = parseISO(task.dueDate);
+          const daysUntilDue = differenceInCalendarDays(
+            parsedDate,
+            currentDate
+          );
+
+          if (
+            !Number.isNaN(daysUntilDue) &&
+            (daysUntilDue === query ||
+              query === 'planned' ||
+              (query === 'pastdue' && daysUntilDue < 0))
+          ) {
+            matches.addItem(task);
+          }
+        });
+      });
+
+      return matches;
+    }
   })();
 
   function checkInputEntered(e, value) {
@@ -343,7 +463,8 @@ const DomController = (() => {
   }
 
   function addTodo(title, color, dueDate) {
-    masterList.getActiveList().addItem(TodoBuilder(title, color, dueDate));
+    const activeList = masterList.getActiveList();
+    activeList.addItem(TodoBuilder(activeList, title, color, dueDate));
 
     displayTodos();
   }
@@ -409,9 +530,11 @@ const DomController = (() => {
     }
   }
 
-  function displayTodos() {
+  function displayTodos(list) {
+    list = list === undefined ? masterList.getActiveList() : list;
+
     const listTitle = document.querySelector('.active-list-title');
-    listTitle.textContent = masterList.getActiveList().title;
+    listTitle.textContent = list.title;
 
     const incompleteContainer = document.querySelector('.incomplete-container');
     incompleteContainer.innerHTML = '';
@@ -419,17 +542,17 @@ const DomController = (() => {
     const completeContainer = document.querySelector('.complete-container');
     completeContainer.innerHTML = '';
 
-    masterList.getActiveList().items.forEach((todo) => {
+    list.items.forEach((todo) => {
       (function setUpCard(replaceCard) {
         const card = buildTodoCard(todo);
 
         card.addEventListener('click', () => {
           displaySidebar(todo, card);
-        });
 
-        overlay.onclick = () => {
-          setUpCard(card);
-        };
+          overlay.onclick = () => {
+            setUpCard(card);
+          };
+        });
 
         if (replaceCard === undefined) {
           if (todo.complete) completeContainer.appendChild(card);
@@ -460,11 +583,23 @@ const DomController = (() => {
       taskWrapper.appendChild(detailsWrapper);
       detailsWrapper.classList.add('task-details-wrapper');
 
+      const parentListTitle = document.createElement('p');
+      detailsWrapper.appendChild(parentListTitle);
+      parentListTitle.classList.add('parent-list-title');
+
+      if (todo.childOf.title !== list.title) {
+        const listTitle = todo.childOf.title.split('');
+        parentListTitle.textContent =
+          listTitle.length > 24
+            ? listTitle.splice(0, 24).join('') + '...'
+            : todo.childOf.title;
+      }
+
       const dueDate = document.createElement('p');
       detailsWrapper.appendChild(dueDate);
       dueDate.classList.add('task-due-date');
       const parsedDate = parseISO(todo.dueDate);
-      const daysUntilDue = differenceInDays(parsedDate, new Date());
+      const daysUntilDue = differenceInCalendarDays(parsedDate, new Date());
       const yearsUntilDue = differenceInYears(parsedDate, new Date());
 
       if (daysUntilDue < 0) {
@@ -539,26 +674,31 @@ const DomController = (() => {
       };
 
       const colorSelector = activeTodoSidebar.querySelector('.color-selector');
+      const colorInput = activeTodoSidebar.querySelector('.color-input');
       const colorLabel = activeTodoSidebar.querySelector(
         '#current-label-color'
       );
-      if (todo.color === 'neutral') {
-        colorLabel.textContent = 'Select a color';
-        colorSelector.classList.add('no-selection');
-      } else {
-        colorLabel.textContent = `${todo.color.toUpperCase()}`;
-        colorSelector.style.backgroundColor = todo.color;
-        colorSelector.classList.remove('no-selection');
-      }
 
-      const colorInput = activeTodoSidebar.querySelector('.color-input');
       colorInput.onchange = () => {
-        todo.color = colorInput.value;
-        colorLabel.textContent = `${todo.color.toUpperCase()}`;
+        todo.setColor(colorInput.value);
+        saveMasterListToLocalStorage();
+        setColorLabel();
         const oldCheckBox = activeTodoSidebar.querySelector('.check-box');
         taskWrapper.replaceChild(buildCheckBox(todo, card), oldCheckBox);
-        saveMasterListToLocalStorage();
       };
+
+      setColorLabel();
+      function setColorLabel() {
+        if (todo.color === 'neutral') {
+          colorLabel.textContent = 'Select a color';
+          colorSelector.classList.add('no-selection');
+        } else {
+          colorLabel.textContent = `${todo.color.toUpperCase()}`;
+          colorSelector.style.backgroundColor = todo.color;
+          colorInput.value = todo.color;
+          colorSelector.classList.remove('no-selection');
+        }
+      }
 
       const note = activeTodoSidebar.querySelector('#task-note');
       note.value = '';
@@ -690,11 +830,12 @@ const DomController = (() => {
     }
 
     function removeTodo(todo, card) {
-      masterList.getActiveList().deleteItem(todo);
+      todo.childOf.deleteItem(todo);
       saveMasterListToLocalStorage();
 
       if (todo.complete) completeContainer.removeChild(card);
       else incompleteContainer.removeChild(card);
+      displayLists();
       closeSidebar();
     }
 
