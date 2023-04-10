@@ -133,13 +133,13 @@
 
       <div class="overlay"></div>
       <aside class="sidebar active-todo-sidebar">
-        <div class="task-container">
+        <div class="details-card task-container">
           <div class="task-wrapper">
             <p id="task-title">Title</p>
             <i class="priority fa-regular fa-star"></i>
           </div>
 
-          <div class="steps-wrapper">
+          <div class="details-card steps-wrapper">
             <div id="active-steps-container"></div>
             <input
               type="text"
@@ -149,7 +149,7 @@
           </div>
         </div>
 
-        <div class="settings-wrapper">
+        <div class="details-card settings-wrapper">
           <p id="task-due-date">Due date</p>
           <div class="date-input-wrapper btn-hover-transition">
             <div class="calendar-icon-wrapper">
@@ -166,7 +166,7 @@
           </div>
         </div>
 
-        <div class="settings-wrapper">
+        <div class="details-card settings-wrapper">
           <p id="current-label-color">Label color</p>
           <div
             tabindex="0"
@@ -190,8 +190,12 @@
             </div>
           </div>
         </div>
-        <textarea name="notes" id="task-note" placeholder="Add note"></textarea>
-        <div id="task-delete">
+        <textarea
+          class="details-card"
+          name="notes"
+          id="task-note"
+          placeholder="Add note"></textarea>
+        <div class="details-card" id="task-delete">
           Delete Task
           <i class="fa-solid fa-trash"></i>
         </div>

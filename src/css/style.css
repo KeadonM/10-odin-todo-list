@@ -87,6 +87,8 @@ body {
 /***---HEADER---***/
 
 header {
+  position: relative;
+  z-index: 1;
   background-color: var(--clr-panel-600);
 }
 
@@ -96,6 +98,7 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: var(--spc-300);
+  box-shadow: 6px 0px 12px rgba(0, 0, 0, 0.4);
 }
 
 .logo-container {
@@ -127,6 +130,7 @@ header {
 
   color: var(--clr-neutral-600);
   background-color: var(--clr-accent-300);
+  box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 /***---MAIN---***/
@@ -155,6 +159,7 @@ textarea {
   border-radius: var(--border-radius);
   background-color: rgba(0, 0, 0, 0.35);
   color: var(--clr-neutral-100);
+  box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.2);
 }
 
 /***---SIDEBAR---***/
@@ -166,6 +171,14 @@ textarea {
   padding-block: var(--spc-400);
   padding-inline: var(--spc-200);
   background-color: var(--clr-panel-500);
+}
+
+.list-sidebar {
+  box-shadow: 6px 0px 12px rgba(0, 0, 0, 0.2);
+}
+
+.active-todo-sidebar {
+  box-shadow: -6px 0px 12px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar input {
@@ -207,10 +220,10 @@ textarea {
 }
 
 .lists-wrapper {
+  height: 76vh;
   width: 100%;
   margin-block: var(--spc-200);
   padding-inline: var(--spc-200);
-  height: 75vh;
   overflow-y: auto;
 }
 
@@ -241,7 +254,7 @@ textarea {
 
   transform: translate(-60%, -45%);
 
-  color: var(--clr-neutral-500);
+  color: var(--clr-neutral-400);
   font-weight: 900;
   font-size: calc(var(--fs-200) * 1.1);
   text-align: center;
@@ -250,7 +263,7 @@ textarea {
 
 .list-card .delete-btn {
   padding-inline: var(--spc-100);
-  color: var(--clr-neutral-100);
+  color: var(--clr-neutral-400);
 }
 
 /***---ACTIVE LIST---***/
@@ -280,6 +293,7 @@ textarea {
   color: white;
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: var(--border-radius);
+  box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.25);
 }
 
 .category-container .fa-angle-down {
@@ -591,6 +605,10 @@ textarea {
 
 /***---TODO DETAILS SIDEBAR---***/
 
+.details-card {
+  box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.15);
+}
+
 .task-container {
   display: flex;
   flex-direction: column;
@@ -778,7 +796,7 @@ footer {
   .list-sidebar {
     z-index: 1;
     position: absolute;
-    width: 15rem;
+    width: 17.5rem;
     height: 100%;
     left: 0;
 

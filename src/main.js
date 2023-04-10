@@ -137,11 +137,23 @@ const masterList = (() => {
     masterList.setActiveList(masterList.items[savedData.activeListIndex]);
   };
 
+  const buildDefault = () => {
+    const newMasterList = ListBuilder('Master List');
+    const defaultList = ListBuilder('My Tasks');
+
+    newMasterList.addItem(defaultList);
+    defaultList.addItem(TodoBuilder(defaultList, 'Welcome to Tasker!'));
+
+    Object.assign(masterList, newMasterList);
+    masterList.setActiveList(defaultList);
+  };
+
   return Object.assign(Object.create(ListBuilder('Master List')), {
     setActiveList,
     getActiveList,
     prepareForStorage,
     reconstructFromStorage,
+    buildDefault,
   });
 })();
 
@@ -447,12 +459,13 @@ const DomController = (() => {
       const savedData = JSON.parse(jsonString);
 
       masterList.reconstructFromStorage(savedData);
-
-      displayLists();
-      displayTodos();
     } else {
-      console.error('No saved data found in local storage');
+      masterList.buildDefault();
+      console.warn('No saved data found in local storage');
     }
+
+    displayLists();
+    displayTodos();
   })();
 
   function addList(title) {
@@ -586,11 +599,11 @@ const DomController = (() => {
       taskWrapper.appendChild(detailsWrapper);
       detailsWrapper.classList.add('task-details-wrapper');
 
-      const parentListTitle = document.createElement('p');
-      detailsWrapper.appendChild(parentListTitle);
-      parentListTitle.classList.add('parent-list-title');
-
       if (todo.childOf.title !== list.title) {
+        const parentListTitle = document.createElement('p');
+        detailsWrapper.appendChild(parentListTitle);
+        parentListTitle.classList.add('parent-list-title');
+
         const listTitle = todo.childOf.title.split('');
         parentListTitle.textContent =
           listTitle.length > 24
@@ -598,34 +611,63 @@ const DomController = (() => {
             : todo.childOf.title;
       }
 
-      const dueDate = document.createElement('p');
-      detailsWrapper.appendChild(dueDate);
-      dueDate.classList.add('task-due-date');
-      const parsedDate = parseISO(todo.dueDate);
-      const daysUntilDue = differenceInCalendarDays(parsedDate, new Date());
-      const yearsUntilDue = differenceInYears(parsedDate, new Date());
+      if (todo.dueDate !== '') {
+        const dueDate = document.createElement('p');
+        detailsWrapper.appendChild(dueDate);
+        dueDate.classList.add('task-due-date');
+        const parsedDate = parseISO(todo.dueDate);
+        const daysUntilDue = differenceInCalendarDays(parsedDate, new Date());
+        const yearsUntilDue = differenceInYears(parsedDate, new Date());
 
-      if (daysUntilDue < 0) {
-        dueDate.innerHTML = `Due ${daysUntilDue * -1} days ago`;
-        dueDate.classList.add('past-due');
-      } else if (daysUntilDue === 0) dueDate.innerHTML = `Due today`;
-      else if (daysUntilDue === 1) dueDate.innerHTML = `Due tomorrow`;
-      else if (daysUntilDue < 7)
-        dueDate.innerHTML = `Due in ${daysUntilDue} days`;
-      else if (yearsUntilDue < 1)
-        dueDate.innerHTML = `Due ${format(parsedDate, 'EEE, MMM do', {
-          awareOfUnicodeTokens: true,
-        }).replace('do', formatOrdinalDay(parsedDate))}`;
-      else if (yearsUntilDue >= 1)
-        dueDate.innerHTML = `Due ${format(parsedDate, 'EEE, MMM do, yyyy', {
-          awareOfUnicodeTokens: true,
-        }).replace('do', formatOrdinalDay(parsedDate))}`;
+        function getDaysUntilDueCase(daysUntilDue, yearsUntilDue) {
+          if (daysUntilDue < 0) return 'pastDue';
+          if (daysUntilDue === 0) return 'today';
+          if (daysUntilDue === 1) return 'tomorrow';
+          if (daysUntilDue < 7) return 'withinAWeek';
+          if (yearsUntilDue < 1) return 'withinAYear';
+          return 'moreThanAYear';
+        }
 
-      const subTasks = document.createElement('p');
-      detailsWrapper.appendChild(subTasks);
-      subTasks.classList.add('sub-tasks');
-      subTasks.innerHTML =
-        todo.steps.items.length === 0 ? '' : todo.steps.items.length;
+        switch (getDaysUntilDueCase(daysUntilDue, yearsUntilDue)) {
+          case 'pastDue':
+            dueDate.innerHTML = `Due ${daysUntilDue * -1} days ago`;
+            dueDate.classList.add('past-due');
+            break;
+          case 'today':
+            dueDate.innerHTML = `Due today`;
+            break;
+          case 'tomorrow':
+            dueDate.innerHTML = `Due tomorrow`;
+            break;
+          case 'withinAWeek':
+            dueDate.innerHTML = `Due in ${daysUntilDue} days`;
+            break;
+          case 'withinAYear':
+            dueDate.innerHTML = `Due ${format(parsedDate, 'EEE, MMM do', {
+              awareOfUnicodeTokens: true,
+            }).replace('do', formatOrdinalDay(parsedDate))}`;
+            break;
+          case 'moreThanAYear':
+            dueDate.innerHTML = `Due ${format(parsedDate, 'EEE, MMM do, yyyy', {
+              awareOfUnicodeTokens: true,
+            }).replace('do', formatOrdinalDay(parsedDate))}`;
+            break;
+        }
+      }
+
+      if (todo.steps.items.length > 0) {
+        const subTasks = document.createElement('p');
+        detailsWrapper.appendChild(subTasks);
+        subTasks.classList.add('sub-tasks');
+
+        const completedSubTasks = todo.steps.items.reduce((total, task) => {
+          return task.complete ? total + 1 : total;
+        }, 0);
+        subTasks.innerHTML =
+          todo.steps.items.length === 0
+            ? ''
+            : `${completedSubTasks}/${todo.steps.items.length}`;
+      }
 
       const note = document.createElement('p');
       detailsWrapper.appendChild(note);
@@ -657,11 +699,11 @@ const DomController = (() => {
 
       const addStepInput = activeTodoSidebar.querySelector('#add-step-input');
       addStepInput.value = '';
-      addStepInput.addEventListener('keydown', (e) => {
+      addStepInput.onkeydown = (e) => {
         if (!checkInputEntered(e, addStepInput.value)) return;
         addStep(todo, addStepInput.value);
         addStepInput.value = '';
-      });
+      };
 
       const dueDateLabel = activeTodoSidebar.querySelector('#task-due-date');
       if (todo.dueDate === '') dueDateLabel.textContent = 'No due date';
@@ -783,10 +825,11 @@ const DomController = (() => {
         checkBox.classList.add('check-box');
 
         onCompletedToggled(checkBox, step);
+
         checkBox.addEventListener('click', (e) => {
           e.stopPropagation();
-          todo.toggleComplete();
-          onCompletedToggled(checkBox, todo);
+          step.toggleComplete();
+          onCompletedToggled(checkBox, step);
           saveMasterListToLocalStorage();
         });
 
