@@ -1,4 +1,3 @@
-
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { ViteMinifyPlugin } from 'vite-plugin-minify';
@@ -8,9 +7,8 @@ const outDir = resolve(__dirname, 'dist');
 
 export default defineConfig({
   root,
-  plugins: [
-    ViteMinifyPlugin({}),
-  ],
+  base: '/10-odin-todo-list',
+  plugins: [ViteMinifyPlugin({})],
   build: {
     outDir,
     emptyOutDir: true,
