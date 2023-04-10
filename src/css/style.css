@@ -184,9 +184,10 @@ textarea {
 
 .preset-list-card,
 .list-card {
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: calc(var(--spc-100) * 0.5);
   border-radius: var(--border-radius);
-
   background-color: var(--clr-list-card);
   color: var(--clr-neutral-200);
 }
@@ -221,6 +222,30 @@ textarea {
 
 .list-card {
   display: flex;
+}
+
+.list-card .total-tasks-wrapper {
+  position: relative;
+
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 99px;
+  height: 1.2rem;
+  aspect-ratio: 1 / 1;
+}
+
+.list-card .total-tasks {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-60%, -45%);
+
+  color: var(--clr-neutral-500);
+  font-weight: 900;
+  font-size: calc(var(--fs-200) * 1.1);
+  text-align: center;
+  letter-spacing: -1px;
 }
 
 .list-card .delete-btn {

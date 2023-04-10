@@ -497,10 +497,13 @@ const DomController = (() => {
         swapActiveList(list);
       });
 
+      const totalTasksWrapper = document.createElement('p');
+      card.appendChild(totalTasksWrapper);
+      totalTasksWrapper.classList.add('total-tasks-wrapper');
       const totalTasks = document.createElement('p');
-      card.appendChild(totalTasks);
+      totalTasksWrapper.appendChild(totalTasks);
       totalTasks.classList.add('total-tasks');
-      totalTasks.innerHTML = list.items.length;
+      totalTasks.innerHTML = list.items.length > 99 ? '99' : list.items.length;
 
       const deleteBtn = document.createElement('button');
       card.appendChild(deleteBtn);
