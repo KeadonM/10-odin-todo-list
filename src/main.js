@@ -8,6 +8,7 @@ import {
   differenceInCalendarDays,
   differenceInYears,
   format,
+  addDays,
 } from 'date-fns';
 
 const ListBuilder = (listName) => {
@@ -143,6 +144,61 @@ const masterList = (() => {
 
     newMasterList.addItem(defaultList);
     defaultList.addItem(TodoBuilder(defaultList, 'Welcome to Tasker!'));
+    defaultList.addItem(
+      TodoBuilder(defaultList, 'Create a new task.', '#F1A3BB')
+    );
+    defaultList.addItem(
+      TodoBuilder(defaultList, 'Prioritize a task.', '#F4C4A9', undefined, true)
+    );
+
+    const today = new Date();
+
+    defaultList.addItem(
+      TodoBuilder(
+        defaultList,
+        'Add a due date.',
+        '#F2EE8F',
+        format(today, 'yyyy-MM-dd')
+      )
+    );
+
+    const steps = ListBuilder('Steps');
+    steps.addItem(stepBuilder('Open todo details.', true));
+    steps.addItem(stepBuilder('Delete a step.', false));
+    steps.addItem(stepBuilder('Edit a note.', false));
+
+    defaultList.addItem(
+      TodoBuilder(
+        defaultList,
+        'Click to add a step.',
+        '#96D470',
+        format(addDays(today, 1), 'yyyy-MM-dd'),
+        false,
+        false,
+        'You can also add notes!',
+        steps
+      )
+    );
+
+    defaultList.addItem(
+      TodoBuilder(
+        defaultList,
+        'Start a new list.',
+        '#959FEF',
+        format(addDays(today, 7), 'yyyy-MM-dd')
+      )
+    );
+
+    defaultList.addItem(
+      TodoBuilder(
+        defaultList,
+        'Discover Tasker!',
+        '#AC68D7',
+        format(addDays(today, -1), 'yyyy-MM-dd'),
+        true,
+        true
+      )
+    );
 
     Object.assign(masterList, newMasterList);
     masterList.setActiveList(defaultList);
@@ -158,6 +214,7 @@ const masterList = (() => {
 })();
 
 const DomController = (() => {
+  const checkSound = new Audio('check-sound.mp3');
   const hamburgerBtn = document.querySelector('.hamburger-btn');
   const overlay = document.querySelector('.overlay');
   const activeTodoSidebar = document.querySelector('.active-todo-sidebar');
@@ -586,6 +643,12 @@ const DomController = (() => {
 
       card.appendChild(buildCheckBox(todo, card));
 
+      const loginBtn = document.querySelector('.login-btn');
+
+      loginBtn.addEventListener('click', () =>
+        alert('Cannot currently login.')
+      );
+
       const taskWrapper = document.createElement('div');
       card.appendChild(taskWrapper);
       taskWrapper.classList.add('todo-card-task-wrapper');
@@ -869,6 +932,8 @@ const DomController = (() => {
       if (completed) {
         incompleteContainer.removeChild(card);
         completeContainer.appendChild(card);
+        checkSound.volume = 0.33;
+        checkSound.play();
       } else {
         completeContainer.removeChild(card);
         incompleteContainer.appendChild(card);
