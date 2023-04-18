@@ -60,7 +60,6 @@ It was an [assignment](https://www.theodinproject.com/lessons/node-path-javascri
 - Improve the user interface with more animations.
 - Implement user accounts for cloud-based data storage and synchronization.
 - Add the ability to share lists and collaborate with others.
-- Add sounds on task completion
 
 ## Author
 
