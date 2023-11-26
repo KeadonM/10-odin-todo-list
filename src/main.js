@@ -224,6 +224,9 @@ const DomController = (() => {
   const addTodoInput = document.querySelector('#new-todo-input');
   const categoryContainer = document.querySelectorAll('.category-container');
 
+  const loginBtn = document.querySelector('.login-btn');
+  loginBtn.addEventListener('click', () => alert('Cannot currently login.'));
+
   hamburgerBtn.addEventListener('click', () => {
     listSideBar.classList.toggle('active');
     overlay.classList.toggle('active');
@@ -642,12 +645,6 @@ const DomController = (() => {
       card.classList.add('todo-card');
 
       card.appendChild(buildCheckBox(todo, card));
-
-      const loginBtn = document.querySelector('.login-btn');
-
-      loginBtn.addEventListener('click', () =>
-        alert('Cannot currently login.')
-      );
 
       const taskWrapper = document.createElement('div');
       card.appendChild(taskWrapper);
