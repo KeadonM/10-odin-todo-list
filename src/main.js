@@ -224,8 +224,8 @@ const DomController = (() => {
   const addTodoInput = document.querySelector('#new-todo-input');
   const categoryContainer = document.querySelectorAll('.category-container');
 
-  const loginBtn = document.querySelector('.login-btn');
-  loginBtn.addEventListener('click', () => alert('Cannot currently login.'));
+  // const loginBtn = document.querySelector('.login-btn');
+  // loginBtn.addEventListener('click', () => alert('Cannot currently login.'));
 
   hamburgerBtn.addEventListener('click', () => {
     listSideBar.classList.toggle('active');
